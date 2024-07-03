@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Mirror</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Future Mirror</h1>
+            <p>Glimpse into the future with AI-generated images</p>
+        </header>
+        <main>
+            <form id="future-form">
+                <input type="text" id="user-input" name="user_input" placeholder="What do you want to see in the future?" required>
+                <select id="model-select" name="model">
+                    <option value="stable_diffusion">Stable Diffusion</option>
+                    <option value="dalle">DALL-E</option>
+                </select>
+                <button type="submit">Generate</button>
+                <button type="button" id="voice-input-btn">Voice Input</button>
+            </form>
+            <form id="audio-upload-form" enctype="multipart/form-data">
+                <input type="file" id="audio-file" name="audio" accept=".wav,.webm,.m4a">
+                <button type="button" id="upload-audio-btn">Upload Audio</button>
+            </form>
+            <div id="loading" class="hidden">
+                <div class="spinner"></div>
+                <p>Generating your future vision...</p>
+            </div>
+            <div id="result" class="hidden">
+                <div class="result-container">
+                    <div class="image-container">
+                        <img id="generated-image" src="" alt="Generated Image">
+                    </div>
+                    <div class="info-container">
+                        <h2>Enhanced Description:</h2>
+                        <p id="description"></p>
+                        <h2>Metadata:</h2>
+                        <div id="metadata"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            function generateFuture() {
+                $('#loading').removeClass('hidden');
+                $('#result').addClass('hidden');
+                $.ajax({
+                    url: '/',
+                    method: 'POST',
+                    data: $('#future-form').serialize(),
+                    success: function(response) {
+                        $('#description').text(response.description);
+                        $('#generated-image').attr('src', response.image_path);
+                        
+                        $('#metadata').empty();
+                        var metadataList = $('<ul>');
+                        for (var key in response.metadata) {
+                            metadataList.append($('<li>').text(key + ': ' + response.metadata[key]));
+                        }
+                        $('#metadata').append(metadataList);
+                        
+                        $('#loading').addClass('hidden');
+                        $('#result').removeClass('hidden');
+                    },
+                    error: function() {
+                        alert('An error occurred. Please try again.');
+                        $('#loading').addClass('hidden');
+                    }
+                });
+            }
+
+            $('#future-form').on('submit', function(e) {
+                e.preventDefault();
+                generateFuture();
+            });
+
+            $('#voice-input-btn').on('click', function() {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert('Your browser does not support voice input.');
+                    return;
+                }
+
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function(stream) {
+                    const mediaRecorder = new MediaRecorder(stream);
+                    let audioChunks = [];
+
+                    mediaRecorder.addEventListener("dataavailable", event => {
+                        audioChunks.push(event.data);
+                    });
+
+                    mediaRecorder.addEventListener("stop", () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const formData = new FormData();
+                        formData.append("audio", audioBlob, "voice.webm");
+
+                        $('#voice-input-btn').text('Processing...');
+
+                        $.ajax({
+                            url: '/voice_input',
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function(response) {
+                                if (response.text) {
+                                    $('#user-input').val(response.text);
+                                    $('#voice-input-btn').text('Voice Input');
+                                } else {
+                                    alert('Could not understand the speech. Please try again.');
+                                    $('#voice-input-btn').text('Voice Input');
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error details:', xhr.responseText);
+                                alert('Error processing voice input. Please try again.');
+                                $('#voice-input-btn').text('Voice Input');
+                            }
+                        });
+                    });
+
+                    mediaRecorder.start();
+                    $('#voice-input-btn').text('Recording...');
+                    setTimeout(() => {
+                        mediaRecorder.stop();
+                        stream.getTracks().forEach(track => track.stop());
+                    }, 5000);
+                })
+                .catch(function(err) {
+                    console.error('Error:', err);
+                    alert('Error accessing the microphone. Please ensure you have given permission.');
+                });
+            });
+
+            $('#upload-audio-btn').on('click', function() {
+                var formData = new FormData($('#audio-upload-form')[0]);
+                
+                $.ajax({
+                    url: '/voice_input',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.text) {
+                            $('#user-input').val(response.text);
+                        } else {
+                            alert('Could not understand the speech. Please try again.');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error details:', xhr.responseText);
+                        alert('Error processing audio file. Please try again.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
