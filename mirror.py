@@ -43,7 +43,7 @@ def enhance_description(input_text,token):
 
         max_tokens= token,#obvious
         temperature=0.9, #Controls the randomness of the response. about generating tokens
-        top_p=0.9, # About selecting token. Value of 1.0 means that no filtering is applied (creative) based on cumulative probability, so all tokens are considered. This does not force the model to include only high-probability tokens, but it allows the model to potentially use any token, depending on the temperature #if top p low high probability tokens are selected
+        top_p=0.2, # About selecting token. Value of 1.0 means that no filtering is applied (creative) based on cumulative probability, so all tokens are considered. This does not force the model to include only high-probability tokens, but it allows the model to potentially use any token, depending on the temperature #if top p low high probability tokens are selected
         frequency_penalty= 0, # about repetition of tokens when we have small value we dont mind repetiton for example key words for summirizing
         presence_penalty=0.7 #discourages the model from introducing new concepts that weren't present in the prompt,
     )
@@ -103,7 +103,7 @@ def future_mirror_dalle(input_text):
     metadata = {
         "original_prompt": input_text,
         "image_size": "1024x1024",
-        "model_used": "DALL-E",
+       `` "model_used": "DALL-E",
         "processing_time": f"{process_time:.2f} seconds",
         "description": description
     }
