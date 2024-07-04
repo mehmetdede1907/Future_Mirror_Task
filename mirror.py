@@ -103,7 +103,7 @@ def future_mirror_dalle(input_text):
     metadata = {
         "original_prompt": input_text,
         "image_size": "1024x1024",
-       `` "model_used": "DALL-E",
+        "model_used": "DALL-E",
         "processing_time": f"{process_time:.2f} seconds",
         "description": description
     }
