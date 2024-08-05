@@ -7,6 +7,7 @@ from vosk import Model, KaldiRecognizer
 import wave
 from pydub import AudioSegment
 import logging
+#FLASK_APP=app.py flask run
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)

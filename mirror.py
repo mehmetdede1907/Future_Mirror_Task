@@ -29,7 +29,7 @@ else:
     print('cpu used')
 
 def enhance_description(input_text,token):
-    prompt = f"Describe the apperance of '{input_text}' as it might appear 20 years in the future. Be imaginative, as it might appear 20 years in the future. Use a language such that describes lot with less word"
+    prompt = f"Describe the image '{input_text} in future. How it will appear 20 years later."
     #insted we may use Completiton but to determine more parameters ChatCompletition is used (Benefitial for learning) :)
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo", # abvious
@@ -45,7 +45,7 @@ def enhance_description(input_text,token):
         temperature=0.9, #Controls the randomness of the response. about generating tokens
         top_p=0.2, # About selecting token. Value of 1.0 means that no filtering is applied (creative) based on cumulative probability, so all tokens are considered. This does not force the model to include only high-probability tokens, but it allows the model to potentially use any token, depending on the temperature #if top p low high probability tokens are selected
         frequency_penalty= 0, # about repetition of tokens when we have small value we dont mind repetiton for example key words for summirizing
-        presence_penalty=0.7 #discourages the model from introducing new concepts that weren't present in the prompt,
+        presence_penalty=0.3 #discourages the model from introducing new concepts that weren't present in the prompt,
     )
     #print(response['choices'][0]['message']['content'].strip())
     return response['choices'][0]['message']['content'].strip()
